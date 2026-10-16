@@ -67,6 +67,36 @@ col4.metric("Crops Selected", f"{filtered['Crop'].nunique()}")
 
 st.divider()
 
+# Agricultural Insights
+st.subheader("🌱 Agricultural Insights")
+
+crop_totals = (
+    filtered.groupby("Crop")["Production"]
+    .sum()
+    .sort_values(ascending=False)
+)
+
+if not crop_totals.empty:
+    top_crop = crop_totals.index[0]
+    top_production = crop_totals.iloc[0]
+
+    total_production = crop_totals.sum()
+    share = (
+        top_production / total_production * 100
+        if total_production > 0 else 0
+    )
+
+    col1, col2 = st.columns(2)
+
+    col1.metric("Highest Production Crop", top_crop)
+    col2.metric("Share of Selected Crop Production", f"{share:.1f}%")
+
+    st.info(
+        f"{top_crop} has the highest recorded total production "
+        f"among the currently selected crops, with "
+        f"{top_production:,.0f} production units."
+    )
+
 # Production by crop
 st.subheader("Production by Crop")
 
