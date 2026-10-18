@@ -18,6 +18,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
+from typing import Tuple, Dict, Any, List, Optional
 import agronomy_data
 
 # ==============================================================================
