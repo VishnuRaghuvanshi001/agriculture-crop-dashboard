@@ -8,7 +8,7 @@ import {
 import { formatLargeNumber, formatExact } from '../utils';
 import { TrendingUp, ArrowUpRight, Zap, Target, Layers, Droplets } from 'lucide-react';
 
-export default function DashboardView({ data, activeYear }) {
+export default function DashboardView({ data, activeYear, excludeCoconut }) {
   const [inflowFilter, setInflowFilter] = useState('All');
   const kpis = data.kpis;
 
@@ -89,7 +89,7 @@ export default function DashboardView({ data, activeYear }) {
           <div className="flex justify-between items-center mb-4">
             <span className="text-[11px] font-bold tracking-widest text-cyan-200 uppercase font-mono flex items-center gap-1.5">
               <Zap size={13} className="text-cyan-400" />
-              CUMULATIVE OUTPUT
+              {excludeCoconut ? 'HARVEST (TONNES ONLY)' : 'CUMULATIVE OUTPUT'}
             </span>
             <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-white/10 border border-white/20 font-mono">
               IND // {activeYear}
@@ -98,7 +98,7 @@ export default function DashboardView({ data, activeYear }) {
 
           {/* Big KPI Value */}
           <div className="text-3xl font-black font-mono tracking-tight text-white mb-1">
-            {formatLargeNumber(displayProd)}
+            {formatLargeNumber(displayProd)} <span className="text-xs font-normal text-cyan-300 font-sans">{excludeCoconut ? 'Metric Tonnes' : 'Units'}</span>
           </div>
           <div className="text-xs text-cyan-200/80 mb-5 flex items-center justify-between">
             <span>Acreage: <strong>{formatLargeNumber(displayArea)}</strong></span>

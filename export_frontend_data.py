@@ -11,6 +11,99 @@ import numpy as np
 import pandas as pd
 import agronomy_data
 
+def aggregate_dataset(df_sub):
+    total_production = float(df_sub["Production"].sum())
+    total_area = float(df_sub["Area"].sum())
+    avg_yield = float(df_sub["Yield"].mean())
+    avg_rainfall = float(df_sub["Annual_Rainfall"].mean())
+    states_count = int(df_sub["State"].nunique())
+    crops_count = int(df_sub["Crop"].nunique())
+
+    # Yearly Trend Data
+    yearly = df_sub.groupby("Crop_Year").agg(
+        production=("Production", "sum"),
+        area=("Area", "sum"),
+        yield_avg=("Yield", "mean"),
+        rainfall=("Annual_Rainfall", "mean"),
+        count=("Crop", "count")
+    ).reset_index().sort_values("Crop_Year")
+    yearly["prev_prod"] = yearly["production"].shift(1)
+    yearly["yoy_growth"] = ((yearly["production"] - yearly["prev_prod"]) / yearly["prev_prod"]) * 100
+    yearly_list = yearly.replace({np.nan: None}).to_dict(orient="records")
+
+    # Commodity Category Distribution
+    cat_summary = df_sub.groupby("Category").agg(
+        production=("Production", "sum"),
+        area=("Area", "sum"),
+        crop_count=("Crop", "nunique")
+    ).reset_index().sort_values("production", ascending=False)
+    cat_summary["share_pct"] = (cat_summary["production"] / (total_production if total_production > 0 else 1)) * 100
+    category_list = cat_summary.to_dict(orient="records")
+
+    # Top Crops Summary & Targets
+    crop_summary = df_sub.groupby("Crop").agg(
+        production=("Production", "sum"),
+        area=("Area", "sum"),
+        yield_avg=("Yield", "mean"),
+        rainfall_avg=("Annual_Rainfall", "mean"),
+        states_count=("State", "nunique"),
+        category=("Category", "first")
+    ).reset_index().sort_values("production", ascending=False)
+    crop_summary["share_pct"] = (crop_summary["production"] / (total_production if total_production > 0 else 1)) * 100
+    top_crops_list = crop_summary.head(20).to_dict(orient="records")
+
+    # Top States Summary
+    state_summary = df_sub.groupby("State").agg(
+        production=("Production", "sum"),
+        area=("Area", "sum"),
+        yield_avg=("Yield", "mean"),
+        rainfall_avg=("Annual_Rainfall", "mean"),
+        crops_count=("Crop", "nunique"),
+        state_geo=("State_Geo", "first")
+    ).reset_index().sort_values("production", ascending=False)
+    state_summary["share_pct"] = (state_summary["production"] / (total_production if total_production > 0 else 1)) * 100
+    state_list = state_summary.to_dict(orient="records")
+
+    # State-by-Year Production for Animated Map
+    state_year_map = df_sub.groupby(["State_Geo", "Crop_Year"]).agg(
+        production=("Production", "sum"),
+        yield_avg=("Yield", "mean"),
+        rainfall=("Annual_Rainfall", "mean")
+    ).reset_index()
+    state_year_dict = {}
+    for _, row in state_year_map.iterrows():
+        yr = str(int(row["Crop_Year"]))
+        st_name = row["State_Geo"]
+        if yr not in state_year_dict:
+            state_year_dict[yr] = {}
+        state_year_dict[yr][st_name] = {
+            "production": float(row["production"]),
+            "yield": float(row["yield_avg"]),
+            "rainfall": float(row["rainfall"])
+        }
+
+    # Multi-Year Milestones (Comparing Recent 4 Years)
+    milestones = yearly.tail(4)[["Crop_Year", "production", "yield_avg", "rainfall"]].to_dict(orient="records")
+
+    return {
+        "kpis": {
+            "total_production": total_production,
+            "total_area": total_area,
+            "avg_yield": avg_yield,
+            "avg_rainfall": avg_rainfall,
+            "states_count": states_count,
+            "crops_count": crops_count,
+            "year_min": int(yearly["Crop_Year"].min()) if len(yearly) > 0 else 1997,
+            "year_max": int(yearly["Crop_Year"].max()) if len(yearly) > 0 else 2020,
+        },
+        "yearly": yearly_list,
+        "categories": category_list,
+        "top_crops": top_crops_list,
+        "states": state_list,
+        "state_yearly": state_year_dict,
+        "milestones": milestones,
+    }
+
 def build_frontend_data():
     base_dir = os.path.dirname(os.path.abspath(__file__))
     csv_path = os.path.join(base_dir, "crop_yield.csv")
@@ -32,78 +125,14 @@ def build_frontend_data():
     df["Category"] = df["Crop"].apply(lambda c: agronomy_data.get_crop_profile(c)["category"])
     df["State_Geo"] = df["State"].map(agronomy_data.get_state_geojson_name)
 
-    # 1. Total KPI Metrics
-    total_production = float(df["Production"].sum())
-    total_area = float(df["Area"].sum())
-    avg_yield = float(df["Yield"].mean())
-    avg_rainfall = float(df["Annual_Rainfall"].mean())
-    states_count = int(df["State"].nunique())
-    crops_count = int(df["Crop"].nunique())
+    # 1. Full Dataset Aggregations (All Commodities including Coconut)
+    all_data = aggregate_dataset(df)
 
-    # 2. Yearly Trend Data
-    yearly = df.groupby("Crop_Year").agg(
-        production=("Production", "sum"),
-        area=("Area", "sum"),
-        yield_avg=("Yield", "mean"),
-        rainfall=("Annual_Rainfall", "mean"),
-        count=("Crop", "count")
-    ).reset_index().sort_values("Crop_Year")
-    yearly["prev_prod"] = yearly["production"].shift(1)
-    yearly["yoy_growth"] = ((yearly["production"] - yearly["prev_prod"]) / yearly["prev_prod"]) * 100
-    yearly_list = yearly.replace({np.nan: None}).to_dict(orient="records")
+    # 2. Food & Cash Crops Only Aggregations (Metric Tonnes Only - Coconut Excluded)
+    df_no_coconut = df[df["Crop"] != "Coconut"]
+    no_coconut_data = aggregate_dataset(df_no_coconut)
 
-    # 3. Commodity Category Distribution
-    cat_summary = df.groupby("Category").agg(
-        production=("Production", "sum"),
-        area=("Area", "sum"),
-        crop_count=("Crop", "nunique")
-    ).reset_index().sort_values("production", ascending=False)
-    cat_summary["share_pct"] = (cat_summary["production"] / total_production) * 100
-    category_list = cat_summary.to_dict(orient="records")
-
-    # 4. Top Crops Summary & Targets
-    crop_summary = df.groupby("Crop").agg(
-        production=("Production", "sum"),
-        area=("Area", "sum"),
-        yield_avg=("Yield", "mean"),
-        rainfall_avg=("Annual_Rainfall", "mean"),
-        states_count=("State", "nunique"),
-        category=("Category", "first")
-    ).reset_index().sort_values("production", ascending=False)
-    crop_summary["share_pct"] = (crop_summary["production"] / total_production) * 100
-    top_crops_list = crop_summary.head(20).to_dict(orient="records")
-
-    # 5. Top States Summary
-    state_summary = df.groupby("State").agg(
-        production=("Production", "sum"),
-        area=("Area", "sum"),
-        yield_avg=("Yield", "mean"),
-        rainfall_avg=("Annual_Rainfall", "mean"),
-        crops_count=("Crop", "nunique"),
-        state_geo=("State_Geo", "first")
-    ).reset_index().sort_values("production", ascending=False)
-    state_summary["share_pct"] = (state_summary["production"] / total_production) * 100
-    state_list = state_summary.to_dict(orient="records")
-
-    # 6. State-by-Year Production for Animated Map
-    state_year_map = df.groupby(["State_Geo", "Crop_Year"]).agg(
-        production=("Production", "sum"),
-        yield_avg=("Yield", "mean"),
-        rainfall=("Annual_Rainfall", "mean")
-    ).reset_index()
-    state_year_dict = {}
-    for _, row in state_year_map.iterrows():
-        yr = str(int(row["Crop_Year"]))
-        st_name = row["State_Geo"]
-        if yr not in state_year_dict:
-            state_year_dict[yr] = {}
-        state_year_dict[yr][st_name] = {
-            "production": float(row["production"]),
-            "yield": float(row["yield_avg"]),
-            "rainfall": float(row["rainfall"])
-        }
-
-    # 7. Agronomic Profiles for all 55 crops
+    # 3. Agronomic Profiles for all 55 crops
     all_crops = sorted(df["Crop"].unique().tolist())
     crop_profiles = {}
     for crop in all_crops:
@@ -120,7 +149,7 @@ def build_frontend_data():
             "source": p["source"]
         }
 
-    # 8. State Agro Profiles for all 30 states
+    # 4. State Agro Profiles for all 30 states
     all_states = sorted(df["State"].unique().tolist())
     state_profiles = {}
     for st_name in all_states:
@@ -136,29 +165,12 @@ def build_frontend_data():
             "top_crops": [{"crop": c, "production": float(v)} for c, v in st_crops.items()]
         }
 
-    # 9. Multi-Year Milestones (Comparing Recent 4 Years)
-    milestones = yearly.tail(4)[["Crop_Year", "production", "yield_avg", "rainfall"]].to_dict(orient="records")
-
-    # Combine into main dataset
+    # Combine into main payload
     payload = {
-        "kpis": {
-            "total_production": total_production,
-            "total_area": total_area,
-            "avg_yield": avg_yield,
-            "avg_rainfall": avg_rainfall,
-            "states_count": states_count,
-            "crops_count": crops_count,
-            "year_min": int(yearly["Crop_Year"].min()),
-            "year_max": int(yearly["Crop_Year"].max()),
-        },
-        "yearly": yearly_list,
-        "categories": category_list,
-        "top_crops": top_crops_list,
-        "states": state_list,
-        "state_yearly": state_year_dict,
+        **all_data,
+        "no_coconut": no_coconut_data,
         "crop_profiles": crop_profiles,
         "state_profiles": state_profiles,
-        "milestones": milestones,
         "all_crops": all_crops,
         "all_states": all_states,
     }

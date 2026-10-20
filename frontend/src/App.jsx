@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Navbar from './components/Navbar';
 import DashboardView from './components/DashboardView';
 import SpatialMapView from './components/SpatialMapView';
 import StateExplorerView from './components/StateExplorerView';
 import CropIntelligenceView from './components/CropIntelligenceView';
+import CropSimulatorView from './components/CropSimulatorView';
+import CropBattleView from './components/CropBattleView';
 import DataTableView from './components/DataTableView';
 import agriData from './data/agri_data.json';
+import { setSoundMuted } from './soundEffects';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -13,6 +16,31 @@ export default function App() {
   const [theme, setTheme] = useState('dark');
   const [selectedState, setSelectedState] = useState('Punjab');
   const [selectedCrop, setSelectedCrop] = useState('Wheat');
+  const [excludeCoconut, setExcludeCoconut] = useState(false);
+  const [soundMutedState, setSoundMutedState] = useState(false);
+
+  // Sync audio mute state with Web Audio API synthesizer
+  const handleSetSoundMuted = (muted) => {
+    setSoundMutedState(muted);
+    setSoundMuted(muted);
+  };
+
+  // Handle dynamic dataset slice (Coconut excluded vs all commodities)
+  const activeData = useMemo(() => {
+    if (!excludeCoconut || !agriData.no_coconut) {
+      return agriData;
+    }
+    return {
+      ...agriData,
+      kpis: agriData.no_coconut.kpis,
+      yearly: agriData.no_coconut.yearly,
+      categories: agriData.no_coconut.categories,
+      top_crops: agriData.no_coconut.top_crops,
+      states: agriData.no_coconut.states,
+      state_yearly: agriData.no_coconut.state_yearly,
+      milestones: agriData.no_coconut.milestones,
+    };
+  }, [excludeCoconut]);
 
   // Handle theme body class updates
   useEffect(() => {
@@ -49,29 +77,34 @@ export default function App() {
         setActiveYear={setActiveYear}
         theme={theme}
         setTheme={setTheme}
+        excludeCoconut={excludeCoconut}
+        setExcludeCoconut={setExcludeCoconut}
+        soundMuted={soundMutedState}
+        setSoundMuted={handleSetSoundMuted}
       />
 
       {/* Main Views */}
       <main className="w-full">
         {activeTab === 'dashboard' && (
           <DashboardView
-            data={agriData}
+            data={activeData}
             activeYear={activeYear}
             onSelectState={handleStateDrilldown}
             onSelectCrop={handleCropDrilldown}
+            excludeCoconut={excludeCoconut}
           />
         )}
 
         {activeTab === 'map' && (
           <SpatialMapView
-            data={agriData}
+            data={activeData}
             onSelectState={handleStateDrilldown}
           />
         )}
 
         {activeTab === 'state' && (
           <StateExplorerView
-            data={agriData}
+            data={activeData}
             selectedState={selectedState}
             onSelectState={setSelectedState}
           />
@@ -79,24 +112,47 @@ export default function App() {
 
         {activeTab === 'crop' && (
           <CropIntelligenceView
-            data={agriData}
+            data={activeData}
             selectedCrop={selectedCrop}
             onSelectCrop={setSelectedCrop}
           />
         )}
 
+        {activeTab === 'simulator' && (
+          <CropSimulatorView
+            data={activeData}
+            onSelectCrop={handleCropDrilldown}
+          />
+        )}
+
+        {activeTab === 'battle' && (
+          <CropBattleView
+            data={activeData}
+          />
+        )}
+
         {activeTab === 'data' && (
           <DataTableView
-            data={agriData}
+            data={activeData}
           />
         )}
       </main>
 
       {/* Footer */}
       <footer className="mt-12 text-center text-xs font-mono text-slate-500 pb-6 border-t border-slate-800/60 pt-4 flex flex-wrap justify-between items-center gap-2">
-        <span>🌾 AGRI-INTELLIGENCE // HISTORICAL RESEARCH COMMAND CENTER</span>
-        <span>BENCHMARKS: ICAR • NBSS&LUP • DES • TNAU • FAO</span>
-        <span className="text-cyan-400">STATUS: PRODUCTION LIVE 60 FPS</span>
+        <span className="flex items-center gap-2">
+          <span>🌾 AGRI-INTELLIGENCE // RESEARCH COMMAND CENTER</span>
+          {excludeCoconut && (
+            <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[10px]">
+              FILTER: TONNES ONLY (COCONUT EXCLUDED)
+            </span>
+          )}
+        </span>
+        <span>BENCHMARKS: ICAR • NBSS&LUP • DES • TNAU • OPEN-METEO WMO</span>
+        <span className="text-cyan-400 flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping inline-block" />
+          STATUS: INDUSTRY PRODUCTION LIVE 60 FPS
+        </span>
       </footer>
     </div>
   );
