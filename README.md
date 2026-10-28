@@ -1,6 +1,6 @@
 # 🌾 AGRI-INTELLIGENCE // National Agronomic Command Center for India
 
-An industry-grade, animated, dual-stack agricultural intelligence platform combining **historical crop production records (1997–2020)** with **ICAR & NBSS&LUP agronomic science**, **Open-Meteo live 2026 satellite meteorology**, and a **cyberpunk glassmorphism web interface (React 19 + Vite)** alongside a **Streamlit modern dashboard**.
+An industry-grade, animated agricultural intelligence web platform combining **historical crop production records (1997–2020)** with **ICAR & NBSS&LUP agronomic science**, **Open-Meteo live 2026 satellite meteorology**, and a **cyberpunk glassmorphism web interface (React 19 + Vite)**.
 
 ---
 
@@ -8,7 +8,7 @@ An industry-grade, animated, dual-stack agricultural intelligence platform combi
 
 Agriculture is the backbone of India's economy, yet yield and crop suitability vary drastically across agro-climatic zones, soil classifications, and seasonal rainfall distributions.
 
-This project delivers an interactive command center bridging **19,689 real-world agricultural observations** across **30 Indian States/UTs** and **55 crops** with authoritative agronomic science:
+This platform delivers an interactive command center bridging **19,689 real-world agricultural observations** across **30 Indian States/UTs** and **55 crops** with authoritative agronomic science:
 - **ICAR** (Indian Council of Agricultural Research)
 - **NBSS&LUP** (National Bureau of Soil Survey and Land Use Planning)
 - **DES** (Directorate of Economics and Statistics, Ministry of Agriculture & Farmers Welfare)
@@ -52,27 +52,26 @@ This project delivers an interactive command center bridging **19,689 real-world
 
 ---
 
-## 🛠️ Dual-Stack Technology Architecture
+## 🛠️ Technology Stack
 
 | Layer | Technologies | Role |
 | :--- | :--- | :--- |
-| **Primary Frontend** | React 19, Vite 8, Tailwind CSS, Framer Motion, Recharts, D3-Geo | 60 FPS animated glassmorphism command center with Web Audio synthesis |
+| **Frontend Framework** | React 19, Vite 8 | Fast, modern client-side rendering & component architecture |
+| **Styling & Effects** | Tailwind CSS, Framer Motion | 60 FPS animated dark glassmorphic UI & transitions |
+| **Data Visualization** | Recharts, D3-Geo | Hardware-accelerated SVG cartography, radars, donuts, and spline charts |
 | **Live Telemetry** | Open-Meteo Global WMO Satellite API | Real-time 2026 meteorological feed for 30 state capitals |
-| **Data Pipeline** | Python 3.11, Pandas, NumPy, JSON Exporter | Pre-aggregates 19,689 rows into dual-slice JSON (`agri_data.json`) |
-| **Companion App** | Streamlit, Plotly Express & Graph Objects | Python companion dashboard (`app_modern.py`) |
-| **Cartography** | Survey of India GeoJSON (36 boundaries) | Official administrative boundary definitions |
+| **Audio Synthesis** | Web Audio API | Procedural synthesizer for micro-interaction sounds |
+| **Data Pipeline** | Python 3.11, Pandas, NumPy | Pre-aggregates 19,689 rows into dual-slice JSON (`agri_data.json`) |
 
 ---
 
 ## 📁 Repository Structure
 
 ```text
-Agriculture_dashboard/
-├── .streamlit/
-│   └── config.toml               # Streamlit theme configuration
+agriculture-crop-dashboard/
 ├── data/
 │   └── india_states.geojson      # Verified Survey of India administrative boundaries
-├── frontend/                     # Full React 19 + Vite Production Web Application
+├── frontend/                     # React 19 + Vite Web Application
 │   ├── public/
 │   │   ├── favicon.svg           # Custom SVG favicon
 │   │   └── icons.svg
@@ -97,13 +96,10 @@ Agriculture_dashboard/
 │   ├── package.json
 │   ├── tailwind.config.js
 │   └── vite.config.js
-├── agronomy_data.py              # Authentic ICAR & NBSS&LUP crop and soil profiles
-├── app.py                        # Streamlit base application
-├── app_modern.py                 # Streamlit modern glassmorphism dashboard
 ├── crop_yield.csv                # Historical production dataset (19,689 rows, 1997–2020)
+├── agronomy_data.py              # Authentic ICAR & NBSS&LUP crop and soil profiles
 ├── export_frontend_data.py       # Data pipeline exporting optimized JSON for React
-├── requirements.txt              # Python dependencies
-├── test_app_logic.py             # Automated test suite
+├── package.json                  # Root npm configuration (1-step npm run dev)
 ├── .gitignore                    # Exclusions for node_modules, dist, and pycache
 └── README.md                     # Documentation
 ```
@@ -112,27 +108,16 @@ Agriculture_dashboard/
 
 ## 🚀 Quickstart Guide
 
-### 1. Run the Primary React Application (Recommended)
-```powershell
-cd d:\Agriculture_dashboard\frontend
+### 1. Install Dependencies
+```bash
 npm install
+```
+
+### 2. Launch the Application
+```bash
 npm run dev
 ```
 👉 Open browser at: **`http://localhost:3000`**
-
-### 2. Run the Python Streamlit Companion
-```powershell
-cd d:\Agriculture_dashboard
-pip install -r requirements.txt
-python -m streamlit run app_modern.py --server.port 8501
-```
-👉 Open browser at: **`http://localhost:8501`**
-
-### 3. Re-generate Frontend Data Pipeline (Optional)
-If you update `crop_yield.csv` or `agronomy_data.py`:
-```powershell
-python export_frontend_data.py
-```
 
 ---
 
