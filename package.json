@@ -1,0 +1,11 @@
+{
+  "name": "agriculture-crop-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "National Agronomic Intelligence & Decision Command Center",
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "start": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build"
+  }
+}
