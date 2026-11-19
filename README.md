@@ -50,6 +50,12 @@ This platform delivers an interactive command center bridging **19,689 real-worl
 ### 7. 📋 Filterable Data Table & CSV Export
 - Search and filter records by State, Crop, or Category with one-click CSV download.
 
+### 8. 🤖 Krishi AI // Cognitive Agronomist (Groq LPU Copilot)
+- **Ultra-Fast LLM Inference:** Powered by Groq Cloud API with real-time SSE streaming (280–750 tokens/sec) using `llama-3.3-70b-versatile` and `llama-3.1-8b-instant`.
+- **In-Memory Agronomic RAG:** Injects authentic ICAR water requirements, temperature ranges, NBSS&LUP soil types, and active dashboard context (inspected state, crop, and Coconut toggle state) into the reasoning loop.
+- **Floating Quick-Access Widget:** Integrated across all views (Dashboard, Spatial Map, Feasibility Simulator, Crop Battle) for seamless, context-aware queries.
+- **Zero-Friction Privacy:** Client-side only API key storage (`localStorage` / `.env.local`), requiring no extra backend processes to run.
+
 ---
 
 ## 🛠️ Technology Stack
@@ -60,6 +66,7 @@ This platform delivers an interactive command center bridging **19,689 real-worl
 | **Styling & Effects** | Tailwind CSS, Framer Motion | 60 FPS animated dark glassmorphic UI & transitions |
 | **Data Visualization** | Recharts, D3-Geo | Hardware-accelerated SVG cartography, radars, donuts, and spline charts |
 | **Live Telemetry** | Open-Meteo Global WMO Satellite API | Real-time 2026 meteorological feed for 30 state capitals |
+| **Cognitive AI Copilot** | Groq Cloud LPU (Llama 3.3 70B & 3.1 8B) | Ultra-fast streaming LLM inference with ICAR domain RAG |
 | **Audio Synthesis** | Web Audio API | Procedural synthesizer for micro-interaction sounds |
 | **Data Pipeline** | Python 3.11, Pandas, NumPy | Pre-aggregates 19,689 rows into dual-slice JSON (`agri_data.json`) |
 
@@ -84,7 +91,13 @@ agriculture-crop-dashboard/
 │   │   │   ├── CropIntelligenceView.jsx # 55 crops & 4-stage lifecycle visualizer
 │   │   │   ├── CropSimulatorView.jsx # ICAR predictive feasibility simulator
 │   │   │   ├── CropBattleView.jsx    # Head-to-head resource efficiency comparator
-│   │   │   └── DataTableView.jsx     # Searchable records & instant CSV export
+│   │   │   ├── DataTableView.jsx     # Searchable records & instant CSV export
+│   │   │   ├── ChatbotView.jsx       # Krishi AI Copilot (Groq LPU streaming interface)
+│   │   │   ├── FloatingChatWidget.jsx# Global quick-access floating assistant
+│   │   │   └── MarkdownRenderer.jsx  # Cyberpunk rich markdown & table formatter
+│   │   ├── services/
+│   │   │   ├── groqService.js        # Groq REST API client & SSE streaming reader
+│   │   │   └── agriPromptContext.js  # Grounding ICAR knowledge base & prompt builder
 │   │   ├── data/
 │   │   │   ├── agri_data.json        # Pre-calculated dual-slice metrics (with/without coconut)
 │   │   │   └── india_states.json     # Cartography GeoJSON bundle
@@ -118,6 +131,61 @@ npm install
 npm run dev
 ```
 👉 Open browser at: **`http://localhost:3000`**
+
+### 3. Optional: Configure Krishi AI (Groq Cloud LLM)
+1. Get a free API key in 30 seconds at [console.groq.com/keys](https://console.groq.com/keys) (no credit card required).
+2. Either paste the key directly in the web app under the **"Krishi AI"** tab, or create a `frontend/.env.local` file:
+   ```env
+   VITE_GROQ_API_KEY=gsk_your_groq_key_here
+   ```
+
+---
+
+## 💻 Running on Another Device or Local Network
+
+### 1. Prerequisites on the New Device
+- **Node.js** (v18 or higher) & npm — [Download from nodejs.org](https://nodejs.org/)
+- **Git** (if cloning via GitHub)
+- *(Optional)* **Python 3.10+**: Only required if you intend to re-process `crop_yield.csv` using `export_frontend_data.py`. The dashboard runs standalone with pre-bundled datasets (`agri_data.json` & `india_states.json`).
+
+### 2. Setup Steps on the New Machine
+```bash
+# 1. Clone or copy the repository
+git clone <your-repo-url>
+cd agriculture-crop-dashboard
+
+# 2. Install dependencies
+npm install
+
+# 3. Start the application
+npm run dev
+```
+👉 Open browser at: **`http://localhost:3000`**
+
+### 3. Setting Up Krishi AI (Groq LLM)
+- **Option A (In-App UI — Recommended):** Launch the dashboard, open the **Krishi AI** tab, click **"Set Groq Key"**, and paste your free key from [console.groq.com/keys](https://console.groq.com/keys). It is saved locally in that browser.
+- **Option B (Pre-configure via environment variable):** Create `frontend/.env.local`:
+  ```env
+  VITE_GROQ_API_KEY=gsk_your_groq_key_here
+  ```
+
+### 4. Accessing from Mobile / Tablet / Laptop on the Same Wi-Fi
+The Vite dev server is pre-configured with `host: true`. When you run `npm run dev`, check your terminal for the Network URL:
+```text
+  ➜  Local:   http://localhost:3000/
+  ➜  Network: http://192.168.x.x:3000/
+```
+Enter the `http://192.168.x.x:3000` address in the browser of any phone, tablet, or secondary laptop connected to the same Wi-Fi network.
+
+### 5. Production Cloud Deployment (Vercel / Netlify)
+To host the platform online for public access:
+1. Push your code to GitHub.
+2. Import the repository into **Vercel** or **Netlify**:
+   - **Root Directory**: `frontend`
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
+   - **Environment Variable**: `VITE_GROQ_API_KEY` = `gsk_...`
+3. Click **Deploy**. The platform and Krishi AI will be live on a public URL with zero server maintenance.
 
 ---
 

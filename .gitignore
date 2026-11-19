@@ -19,3 +19,4 @@ dist-ssr/
 frontend/node_modules/
 frontend/dist/
 *.local
+frontend/src/test_write.txt

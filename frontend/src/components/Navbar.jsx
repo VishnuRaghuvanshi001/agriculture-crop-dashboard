@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import {
   Sprout, Map, BarChart3, Globe, Database, Moon, Sun, CloudRain,
-  Cpu, Swords, Volume2, VolumeX, Filter
+  Cpu, Swords, Volume2, VolumeX, Filter, Bot
 } from 'lucide-react';
 import { playClickSound, playSwitchSound } from '../soundEffects';
 
@@ -26,6 +26,7 @@ export default function Navbar({
     { id: 'simulator', label: 'Feasibility Simulator', icon: Cpu },
     { id: 'battle', label: 'Crop Battle', icon: Swords },
     { id: 'data', label: 'Records & Export', icon: Database },
+    { id: 'chat', label: 'Krishi AI', icon: Bot, badge: 'GROQ' },
   ];
 
   const years = ['All', '2019', '2018', '2017', '2016', '2015'];
@@ -94,6 +95,11 @@ export default function Navbar({
                 )}
                 <Icon size={14} className={isActive ? 'text-cyan-400' : 'text-slate-400'} />
                 <span className="relative z-10">{tab.label}</span>
+                {tab.badge && (
+                  <span className="relative z-10 text-[9px] font-mono px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                    {tab.badge}
+                  </span>
+                )}
               </button>
             );
           })}

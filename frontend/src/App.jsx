@@ -7,6 +7,8 @@ import CropIntelligenceView from './components/CropIntelligenceView';
 import CropSimulatorView from './components/CropSimulatorView';
 import CropBattleView from './components/CropBattleView';
 import DataTableView from './components/DataTableView';
+import ChatbotView from './components/ChatbotView';
+import FloatingChatWidget from './components/FloatingChatWidget';
 import agriData from './data/agri_data.json';
 import { setSoundMuted } from './soundEffects';
 
@@ -18,6 +20,7 @@ export default function App() {
   const [selectedCrop, setSelectedCrop] = useState('Wheat');
   const [excludeCoconut, setExcludeCoconut] = useState(false);
   const [soundMutedState, setSoundMutedState] = useState(false);
+  const [pendingChatQuery, setPendingChatQuery] = useState('');
 
   // Sync audio mute state with Web Audio API synthesizer
   const handleSetSoundMuted = (muted) => {
@@ -136,7 +139,32 @@ export default function App() {
             data={activeData}
           />
         )}
+
+        {activeTab === 'chat' && (
+          <ChatbotView
+            data={activeData}
+            selectedState={selectedState}
+            selectedCrop={selectedCrop}
+            excludeCoconut={excludeCoconut}
+            initialPrompt={pendingChatQuery}
+            onClearInitialPrompt={() => setPendingChatQuery('')}
+            onSelectState={handleStateDrilldown}
+            onSelectCrop={handleCropDrilldown}
+          />
+        )}
       </main>
+
+      {/* Global Floating Copilot Trigger */}
+      <FloatingChatWidget
+        activeTab={activeTab}
+        onOpenFullChat={() => setActiveTab('chat')}
+        selectedState={selectedState}
+        selectedCrop={selectedCrop}
+        onQuickQuery={(query) => {
+          setPendingChatQuery(query);
+          setActiveTab('chat');
+        }}
+      />
 
       {/* Footer */}
       <footer className="mt-12 text-center text-xs font-mono text-slate-500 pb-6 border-t border-slate-800/60 pt-4 flex flex-wrap justify-between items-center gap-2">
