@@ -6,9 +6,6 @@ __pycache__/
 env/
 venv/
 
-# Streamlit run cache
-.streamlit/cache/
-
 # OS and installer logs
 install*.log
 Thumbs.db
